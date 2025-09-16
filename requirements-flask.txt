@@ -1,0 +1,15 @@
+numpy
+scipy
+mediapipe
+ffmpeg-python
+opencv-python
+opencv-contrib-python
+pandas
+moviepy
+asgiref
+Flask
+ultralytics
+torch 
+torchvision 
+torchaudio
+Flask-SQLAlchemy

@@ -1,0 +1,7 @@
+{
+    "x_columns":0,
+    "y_columns":1,
+    "x_labels":"time",
+    "y_labels":"value",
+    "title":"Single Plot"
+}

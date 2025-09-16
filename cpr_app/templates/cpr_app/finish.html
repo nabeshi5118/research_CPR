@@ -1,0 +1,51 @@
+<!-- Updated finish.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <title>Result</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    .container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .btn-back {
+      display: inline-block;
+      padding: 10px 30px;
+      font-size: 18px;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      text-decoration: none;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .btn-back:hover {
+      background-color: #0056b3;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Result</h1>
+    <div class="result">
+      <p>{{ result.message }}</p>
+      <p>---------- CPR Evaluation ----------</p>
+      <p>Compression Count: {{ result.compression_count }} (count)</p>
+      <p>Appropriate Recoil Percent : {{ result.appro_recoils_percent }} %</p>
+      <p>Appropriate Depth Percent: {{ result.appro_compression_percent }} %</p>
+      <p>Mean Tempo : {{ result.mean_tempo }} (count/minute)</p>
+      <p>Appropriate Tempo Percent : {{ result.appro_tempo_percent }} %</p>
+      <p>Line Graph</p>
+      <img src="{{ url_for('static', filename='result/graph.png') }}">
+      <p>Analyzed Movie</p>
+      <video src="{{ url_for('static', filename='result/movie.MP4') }}" controls></video>
+    </div>
+
+    <!-- 戻るボタン -->
+    <a href="{{ url_for('index') }}" class="btn-back mt-3">Back</a>
+  </div>
+</body>
+</html>

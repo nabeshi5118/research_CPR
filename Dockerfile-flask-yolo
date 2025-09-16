@@ -1,0 +1,53 @@
+# ベースイメージ
+FROM nvidia/cuda:12.1.0-cudnn8-devel-ubuntu20.04
+
+# タイムゾーンの設定
+ENV TZ=Asia/Tokyo
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# 基本ツールのインストール
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    unzip \
+    git \
+    sudo \
+    libgl1-mesa-dev \
+    libx11-dev \
+    curl \
+    x11-apps \
+    ffmpeg \
+    libopencv-dev \
+    libgtk-3-dev \
+    software-properties-common \
+    build-essential \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+# Pythonのインストール
+RUN add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && apt-get install -y python3.10 python3.10-distutils python3.10-tk && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1 && \
+    apt-get install -y python3-pip && \
+    curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
+
+# Pythonライブラリのインストール
+COPY requirements-flask.txt /tmp/
+RUN pip3 install --no-cache-dir -U pip setuptools wheel && \
+    pip3 install --no-cache-dir -r /tmp/requirements-flask.txt
+
+# PyTorchのインストール
+RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Bazelのインストール
+RUN apt-get install -y curl gnupg && \
+    curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor -o /usr/share/keyrings/bazel-archive-keyring.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list && \
+    apt-get update && apt-get install -y bazel=5.0.0 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# 日本語フォントのインストール
+ENV NOTO_DIR /usr/share/fonts/opentype/notosans
+RUN apt-get update && apt-get install -y fonts-noto-cjk && mkdir -p $NOTO_DIR && ln -s /usr/share/fonts/opentype/noto $NOTO_DIR
+
+# エントリーポイントの設定
+CMD ["python3", "your_app.py"]

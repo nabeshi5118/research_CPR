@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <title>動画解析</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="{{ url_for('static', filename='progress.js') }}"></script>
+</head>
+<body data-filename="{{ filename }}">
+  <h1>動画解析中</h1>
+  <div class="progress-bar">
+    <div class="progress" id="progress"></div>
+  </div>
+  <div class="message" id="message">
+    処理中...
+  </div>
+</body>
+</html>

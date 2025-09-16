@@ -1,0 +1,40 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+h1 {
+    color: var(--h1-color, #007BFF);
+}
+
+.progress-bar {
+    width: 70%;
+    background-color: #D1D1D1;
+    height: 20px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.progress {
+    width: var(--progress-width, 0%);
+    height: 100%;
+    background-color: var(--progress-color, #007BFF);
+    position: absolute;
+}
+
+.message {
+    margin-top: 20px;
+}
+
+:root {
+    --progress-width: 0%;
+}
+
+/* videoを親要素の幅に合わせる */
+video {
+    width: 50%;
+    }
+
+img {
+    width :50%;
+}

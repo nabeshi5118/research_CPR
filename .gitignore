@@ -1,0 +1,8 @@
+# __pycache__ ディレクトリと .pyc ファイルを無視
+__pycache__/
+*.pyc
+
+# model ディレクトリ内のファイルを無視
+model/
+debug/
+CPR_video_2024_output/

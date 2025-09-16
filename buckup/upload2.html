@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+<!--いらないと思うから別の場所に保管-->
+{% block content %}
+<h1>撮影した動画をアップロードしてください Plsease upload the video</h1>
+<h1>動画をアップロードする Upload the video</h1>
+<form method="POST" action="/upload" enctype="multipart/form-data">
+  <input type="file" name="file">
+  <input type="submit" value="アップロード">
+</form>
+
+
+<h2>タイトル表示</h2>
+<ul>
+  {% for title in my_dict.test_titles %}
+  {% if title == 'title2' %}
+    <li>{{ title }}</li>
+  {% elif title == 'title3' %}
+    <li>見せない</li>
+  {% else %}
+    <li>xxxx</li>
+  {% endif %}
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,37 @@
+{
+    "2025_05_29_10_04": {
+        "graph": "cpr_app/results/2025_05_29_10_04/graph.png",
+        "video": "cpr_app/results/2025_05_29_10_04/movie.MP4",
+        "json": "cpr_app/results/2025_05_29_10_04/results.json"
+    },
+    "2025_08_28_03_16": {
+        "graph": "cpr_app/results/2025_08_28_03_16/graph.png",
+        "video": "cpr_app/results/2025_08_28_03_16/movie.MP4",
+        "json": "cpr_app/results/2025_08_28_03_16/results.json"
+    },
+    "2025_08_28_03_18": {
+        "graph": "cpr_app/results/2025_08_28_03_18/graph.png",
+        "video": "cpr_app/results/2025_08_28_03_18/movie.MP4",
+        "json": "cpr_app/results/2025_08_28_03_18/results.json"
+    },
+    "2025_08_28_03_19": {
+        "graph": "cpr_app/results/2025_08_28_03_19/graph.png",
+        "video": "cpr_app/results/2025_08_28_03_19/movie.MP4",
+        "json": "cpr_app/results/2025_08_28_03_19/results.json"
+    },
+    "2025_08_28_03_20": {
+        "graph": "cpr_app/results/2025_08_28_03_20/graph.png",
+        "video": "cpr_app/results/2025_08_28_03_20/movie.MP4",
+        "json": "cpr_app/results/2025_08_28_03_20/results.json"
+    },
+    "2025_08_29_12_33": {
+        "graph": "cpr_app/results/2025_08_29_12_33/graph.png",
+        "video": "cpr_app/results/2025_08_29_12_33/movie.MP4",
+        "json": "cpr_app/results/2025_08_29_12_33/results.json"
+    },
+    "2025_08_29_12_34": {
+        "graph": "cpr_app/results/2025_08_29_12_34/graph.png",
+        "video": "cpr_app/results/2025_08_29_12_34/movie.MP4",
+        "json": "cpr_app/results/2025_08_29_12_34/results.json"
+    }
+}

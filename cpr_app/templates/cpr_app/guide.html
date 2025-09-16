@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <title>評価画面の見方</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    .container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .btn-back {
+      display: inline-block;
+      padding: 10px 30px;
+      font-size: 18px;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      text-decoration: none;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .btn-back:hover {
+      background-color: #0056b3;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>How to check</h1>
+    <div class="result">
+      <p>---------- CPR Evaluation ----------</p>
+      <p><strong>Compression Count:</strong> Evaluate the count of chest compression</p>
+      <p><strong>Appropriate Recoil Percent:</strong> Percentage of how many of the compression times reach the red line in the plot image.</p>
+      <p><strong>Appropriate Depth Percent:</strong> Percentage of how many of the compression times reach the blue line in the plot image.</p>
+      <p><strong>Mean Tempo:</strong> How many chest compressions per minute can you do if you continue to perform these chest compressions. (BPM)</p>
+      <p><strong>Appropriate Tempo Percent:</strong> Percentage of how many times one set of correct depth and one set of correct release is performed.</p>
+      <p><strong>Line Graph:</strong> Actual sternal compression strength variation</p>
+      <img src="{{ url_for('static', filename='result/graph.png') }}">
+      <p><strong>Analyzed Movie:</strong> Video after analysis with YOLOv8</p>
+      <video src="{{ url_for('static', filename='result/movie.MP4') }}" controls></video>
+    </div>
+
+    <!-- 戻るボタン -->
+    <a href="{{ url_for('index') }}" class="btn-back mt-3">Back</a>
+  </div>
+</body>
+</html>

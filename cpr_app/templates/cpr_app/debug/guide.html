@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <title>評価画面の見方</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    .container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .btn-back {
+      display: inline-block;
+      padding: 10px 30px;
+      font-size: 18px;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      text-decoration: none;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .btn-back:hover {
+      background-color: #0056b3;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>評価画面の見方</h1>
+    <div class="result">
+      <p>---------- CPR評価 ----------</p>
+      <p><strong>圧迫回数:</strong> 何回胸骨圧迫を実施したかを評価できます。</p>
+      <p><strong>圧迫解除適正率:</strong> 圧迫回数のうち、何回がプロット画像の赤のラインに達しているかの割合。</p>
+      <p><strong>圧迫深度適正率:</strong> 圧迫回数のうち、何回がプロット画像の青のラインに達しているかの割合。</p>
+      <p><strong>平均テンポ:</strong> この胸骨圧迫を続けると、1分間に何回できるか(BPM)。</p>
+      <p><strong>胸骨圧迫適正率:</strong> 適正深度と適正解除を1セットして、何回が正しい1セットを実施しているかの割合。</p>
+      <p><strong>プロット画像:</strong> 実際の胸骨圧迫の強さの変移</p>
+      <img src="{{ url_for('static', filename='result/graph.png') }}">
+      <p><strong>解析動画:</strong> YOLOv8で解析後の動画</p>
+      <video src="{{ url_for('static', filename='result/movie.MP4') }}" controls></video>
+    </div>
+
+    <!-- 戻るボタン -->
+    <a href="{{ url_for('index') }}" class="btn-back mt-3">戻る back</a>
+  </div>
+</body>
+</html>

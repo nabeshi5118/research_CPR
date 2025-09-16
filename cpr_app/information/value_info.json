@@ -1,0 +1,11 @@
+{
+    "mediapipe_flg" : 0,
+    "y_lim_upper" : 0.85,
+    "y_lim_lower" : 0.55,
+    "h_line_upper" : 0.84,
+    "h_line_lower" : 0.8,
+    "fps" : 119.88,
+    "window_size" : 10,
+    "upper_line" : 754,
+    "lower_line":715
+}
