@@ -1,3 +1,4 @@
+
 # flask_CPR_web_app
 informationフォルダ
     解析で使うデータ(json)が格納してある
@@ -11,3 +12,4 @@ dataフォルダ
 outputs/jsonフォルダ
     html,jsで出力するときに用いるjsonを保存するフォルダ
     場所はhtmlの都合上ここが良い
+
