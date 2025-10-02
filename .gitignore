@@ -4,7 +4,6 @@ __pycache__/
 
 # model ディレクトリ内のファイルを無視
 movie/
-debug/
 CPR_video_2024_output/
 not_use/
 flask_web_app/model/

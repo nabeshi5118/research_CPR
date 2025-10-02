@@ -71,7 +71,6 @@ if __name__ == "__main__":
 
     # 指定したパスの配列を入力してください
     directory_paths = [
-        "cpr_app/static/result",
         "cpr_app/uploads",
         "cpr_app/output_analyzing",
         "cpr_app/results",
