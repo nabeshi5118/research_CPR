@@ -11,10 +11,10 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     volumes:
-      - /home/watanabe/research/Docker-composes/flask_CPR_web_app:/Container
-      - /home/watanabe/research/CPR-dataset:/CPR-dataset
-      - /media/watanabe/SPD-2TB/CPR-output:/CPR-output
-      - /media/watanabe/SPD-2TB/CPR_video:/CPR_video
+      - /home/watanabe/research/Pose_CPR/research_CPR/flask_web_app:/Container
+      #- /home/watanabe/research/CPR-dataset:/CPR-dataset
+      #- /media/watanabe/SPD-2TB/CPR-output:/CPR-output
+      #- /media/watanabe/SPD-2TB/CPR_video:/CPR_video
       - /tmp/.X11-unix:/tmp/.X11-unix
     image: image-flask-yolo
     container_name: cpr-flask-yolo

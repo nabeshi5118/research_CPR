@@ -39,9 +39,9 @@
       <p>Mean Tempo : {{ result.mean_tempo }} (count/minute)</p>
       <p>Appropriate Tempo Percent : {{ result.appro_tempo_percent }} %</p>
       <p>Line Graph</p>
-      <img src="{{ url_for('static', filename='result/graph.png') }}">
+      <img src="{{ url_for('serve_analyzed_file', filename='graph.png') }}">
       <p>Analyzed Movie</p>
-      <video src="{{ url_for('static', filename='result/movie.MP4') }}" controls></video>
+      <video src="{{ url_for('serve_analyzed_file', filename='movie.MP4') }}" controls></video>
     </div>
 
     <!-- 戻るボタン -->

@@ -1,5 +1,10 @@
 from cpr_app import app
 
+
+#HTMLのパス
+app.config['ANALYZE_HTML_PATH'] = 'cpr_app/analyze.html'
+
+
 #撮影した動画を格納するパス
 app.config['UPLOAD_FOLDER'] = 'cpr_app/uploads'
 #許可する拡張子をまとめたもの
@@ -15,16 +20,18 @@ app.config['JSON_ANALYZING_RESULT'] = "cpr_app/output_analyzing/json/result.json
 app.config['JSON_ANALYZING_PROGRESS'] = "cpr_app/output_analyzing/json/progress.json"
 
 #webに出力したいデータを保存するパス
-app.config['RESULT_PATH'] = "cpr_app/static/result"
+app.config['OUTPUT_ANALYZING_RESULT_PATH'] = "output_analyzing/result"
 
 
 app.config['RESULTS_FOLDER_PATH'] = "cpr_app/results"
 app.config['RESULTS_INFORMATION_JSON'] = "cpr_app/results/results.json"
 
+app.config['DEBUG_VIDEO_PATH'] = './debug/debug_10.mp4'
 
 #informationの情報はプログラム中で上書きしない
 #テスト用データのパスについて書いてあるjson
 app.config['INPUT_INFO'] = "cpr_app/information/input_info.json"
+
 app.config['OUTPUT_INFO'] = "cpr_app/information/output_info.json"
 app.config['YOLO_INFO'] =  "cpr_app/information/yolo_info.json"
 app.config['PLOT_INFO'] = "cpr_app/information/plot_info.json"

@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 
 # model ディレクトリ内のファイルを無視
-model/
+movie/
 debug/
 CPR_video_2024_output/
+not_use/
+flask_web_app/model/

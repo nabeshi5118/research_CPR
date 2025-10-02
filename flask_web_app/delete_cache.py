@@ -9,9 +9,18 @@ class DeleteCache():
         "cpr_app/results",
         # 他のパスを追加
     ]
+    
+        self._file_history = [
+                "cpr_app/results"
+            ]
 
     def delete_cache(self):
         for path in self._file_names:
+            delete_contents_of_directory(path)
+
+
+    def delete_history(self):
+        for path in self._file_history:
             delete_contents_of_directory(path)
 
 def count_files_and_dirs(path):
@@ -57,7 +66,7 @@ def delete_specific_file(path, file_name):
 
 
 if __name__ == "__main__":
-    path_to_search = "/home/watanabe/research/Docker-composes/flask_CPR_web_app"
+    path_to_search = "/home/watanabe/research/Pose_CPR/research_CPR/flask_web_app"
     file_name_to_delete = "yolov8x-pose-p6.pt"  # 削除したいファイル名
 
     # 指定したパスの配列を入力してください

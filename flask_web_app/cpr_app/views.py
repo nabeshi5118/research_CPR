@@ -1,5 +1,5 @@
 from cpr_app import app
-from flask import Flask,g, render_template, request, redirect, url_for, flash, jsonify,current_app
+from flask import Flask,g, render_template, request, redirect, url_for, flash, jsonify,current_app,send_from_directory
 import os, glob
 import cv2
 import asyncio
@@ -9,7 +9,8 @@ from .analyze_yolo import write_csv_yolo_cpr
 from .analyze_yolo import plot_csv
 from .analyze_yolo import reconstruction_video
 from .config_json import ConfigJson
-from .delete_cache import DeleteCache
+from delete_cache import DeleteCache
+from util import Config
 
 from .data.video_data import VideoData
 
@@ -97,15 +98,28 @@ def clear_history():
     print("履歴が削除されました。")
     return render_template('cpr_app/history.html', message="履歴を削除しました。")
 
+# views.py
 @app.route('/select_date', methods=['POST'])
 def select_date():
     selected_date = request.form.get('timestamp')
     RIJ = ConfigJson(app.config['RESULTS_INFORMATION_JSON'])
     results_dict = RIJ.dict()
     if selected_date and selected_date in results_dict:
-        # 選択された日付に応じた処理（例：詳細ページにリダイレクト）
-        shutil.copy(results_dict[selected_date]["video"],app.config['RESULT_PATH']+"/movie.MP4")
-        shutil.copy(results_dict[selected_date]["graph"],app.config['RESULT_PATH']+"/graph.png")
+        # ★★★★★ ここから修正 ★★★★★
+        
+        # 1. コピー先のディレクトリパスを取得
+        destination_dir = app.config['OUTPUT_ANALYZING_RESULT_PATH']
+        
+        # 2. util.pyの関数を使って、ディレクトリが存在することを保証する
+        Config.create_directory(destination_dir)
+        
+        # 3. これで安全にファイルをコピーできる
+        #    (os.path.joinを使うとより安全にパスを結合できます)
+        shutil.copy(results_dict[selected_date]["video"], os.path.join(destination_dir, "movie.MP4"))
+        shutil.copy(results_dict[selected_date]["graph"], os.path.join(destination_dir, "graph.png"))
+        
+        # ★★★★★ ここまで修正 ★★★★★
+
         RI = ConfigJson(results_dict[selected_date]["json"])
         return render_template('cpr_app/finish.html', result=RI.dict())
     return redirect(url_for('history'))
@@ -114,18 +128,16 @@ def select_date():
 
 #ファイルアップロード時の状態を確認する関数
 #@app.route('/analyze/<filename>')　ここに飛ぶ
-#
 @app.route('/upload', methods=['POST'])
 def upload_file():
-  II = ConfigJson(app.config['INPUT_INFO'])
   cache = DeleteCache()
   cache.delete_cache()
-  sample_Filepath = II.load("filepath_10")
-  sample_Filename = II.load("filename_10")
+  sample_Filepath = app.config['DEBUG_VIDEO_PATH']
+  sample_Filename = Config.get_filename(sample_Filepath)
+  sample_Filename_only = Config.get_filename(sample_Filepath,True)#ファイル名のみ
   upload_folder_path = app.config['UPLOAD_FOLDER']
- #テスト用データの処理が汚いからここ直したい
   #キー名にtest_10を探している
-  if II.load("name") in request.form:
+  if sample_Filename_only in request.form:
     print("テストデータ Test data")
     shutil.copy(sample_Filepath,upload_folder_path)
     flash('アップロードが成功しました Success', 'success')
@@ -151,8 +163,9 @@ def upload_file():
     return redirect(request.url)
 
 @app.route('/analyze/<filename>')
+#analyzeに飛ぶ
 def analyze(filename):
-  template_name = 'cpr_app/analyze.html'
+  template_name = app.config['ANALYZE_HTML_PATH'] # cpr_app/analyze.html
   template_path = os.path.join(current_app.root_path, 'templates', template_name)
 
     # os.path.exists() を使ってファイルの存在を確認します
@@ -160,8 +173,7 @@ def analyze(filename):
         # ファイルが存在しない場合、404エラーを返して処理を中断します
     print("not found")
   else:
-     print("found")
-  return render_template('cpr_app/analyze.html', filename=filename)
+    return render_template(template_name, filename=filename)
 
 @app.route('/progress/<filename>', methods=['POST'])
 def progress(filename):
@@ -177,10 +189,10 @@ def progress(filename):
   upload_video_path = os.path.join(app.config['UPLOAD_FOLDER'],filename)
   print(upload_video_path)
   video = VideoData(upload_video_path)
-  analyzing_folder_path = app.config['OUTPUT_ANALYZING_PATH']
+  analyzing_folder_path = app.config['OUTPUT_ANALYZING_RESULT_PATH']
   #webに出力する用
-  output_analyzing_graph_path = app.config['RESULT_PATH'] + "/graph.png"
-  output_analyzing_movie_path = app.config['RESULT_PATH'] + "/movie.MP4"
+  output_analyzing_graph_path = app.config['OUTPUT_ANALYZING_RESULT_PATH'] + "/graph.png"
+  output_analyzing_movie_path = app.config['OUTPUT_ANALYZING_RESULT_PATH'] + "/movie.MP4"
   #resultsに保存するときのパス
   result_save_path = create_folder(app.config['RESULTS_FOLDER_PATH'],user_file)
   rj_dict[user_file] = {
@@ -256,3 +268,30 @@ def finish():
   CJ =  ConfigJson(app.config['JSON_ANALYZING_RESULT'])
 
   return render_template('cpr_app/finish.html', result=CJ.dict())
+
+
+# output_analyzing/result フォルダ内のファイルを配信するためのルート
+# views.py の serve_analyzed_file 関数を以下に置き換える
+
+@app.route('/analyzed_files/<path:filename>')
+def serve_analyzed_file(filename):
+    """解析結果のファイル（画像や動画）を配信する"""
+    
+    # 1. configから相対パスを取得
+    relative_dir = app.config['OUTPUT_ANALYZING_RESULT_PATH']
+    
+    # 2. プロジェクトルートを基準とした絶対パスに変換
+    #    current_app.root_path は '.../cpr_app' を指すので、'..' で一つ上に行く
+    absolute_dir = os.path.abspath(os.path.join(current_app.root_path, '..', relative_dir))
+    
+    # --- デバッグ用のprint文 ---
+    full_path = os.path.join(absolute_dir, filename)
+    print("--- serve_analyzed_file デバッグ情報 ---")
+    print(f"設定された相対パス: {relative_dir}")
+    print(f"計算された絶対パス: {absolute_dir}")
+    print(f"探しているファイルのフルパス: {full_path}")
+    print(f"ファイルは存在しますか？: {os.path.exists(full_path)}")
+    print("------------------------------------")
+
+    # 3. 絶対パスを使ってファイルを安全に配信
+    return send_from_directory(absolute_dir, filename)
