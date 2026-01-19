@@ -1,16 +1,24 @@
 # cpr_app/services.py
 
 import shutil
-from .models import VideoData  # VideoDataクラスをインポート
-from .config_json import ConfigJson
-from .analyze_yolo import write_csv_yolo_cpr, plot_csv, reconstruction_video
+
+from .evaluate_csv import evaluate_csv
+
+from .make_result import reconstruction_video
+from .models import VideoData,AnalysisResult  # VideoDataクラスをインポート
+from util import ConfigJson
+from .analyze_yolo import write_csv_yolo_cpr
+from .make_result import make_result_data
 
 class AnalysisService:
     """動画解析の全工程を管理するサービスクラス"""
 
     def __init__(self, video: VideoData, app_config: dict, result_paths: dict):
         self.video = video
+        self.analysis_result = AnalysisResult(video)
+
         self.config = app_config
+        
         self.result_paths = result_paths
         # このクラスが進捗トラッカーの責任を持つ
         self.progress_tracker = ConfigJson(self.config['CACHE_ANALYZE_PROGRESS_JSON'])
@@ -25,29 +33,24 @@ class AnalysisService:
         # Step 1: 姿勢推定
         self._update_progress('Pose Estimate', 0, 1)
         exe = write_csv_yolo_cpr.YOLOv8Estimator(
-            self.video.place, 
+            self.video.place, #動画のパス
             self.config['CACHE_PATH'], 
             self.config['YOLO_MODEL_PATH'],
             error_message=self.config['ERROR_MESSAGE']
         )
         exe.estimation_algorithm(self.config['JSON_ANALYZING_PROGRESS'], self.video.flame)
-        csv_paths, cache_path = exe.return_paths()
+        
         self._update_progress('Pose Estimate', 100, 1)
 
-        # Step 2: データ解析 (現在はプレースホルダー)
+        # Step 2: データ解析 
         self._update_progress('Analyze Data', 0, 2)
         # ... 本来のデータ解析ロジック ...
+        evaluate_csv.evaluate_csv_data(self.config["CACHE_CSV_EVALUATE"],self.analysis_result)
         self._update_progress('Analyze Data', 100, 2)
 
         # Step 3: グラフ作成
         self._update_progress('Make Evaluation', 0, 3)
-        plot_csv.plot_csv_data(
-            csv_filename=csv_paths[10], 
-            fps=self.video.fps, 
-            time=self.video.time, 
-            output_graph_path=self.config['CACHE_OUTPUT_GRAPH'],
-            analyzing_result_json=self.config['CACHE_ANALYZE_RESULT_JSON']
-        )
+        make_result_data.make_result_data(self.analysis_result)
         self._update_progress('Make Graph', 100, 3)
 
         # Step 4: 動画作成

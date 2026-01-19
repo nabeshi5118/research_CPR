@@ -2,7 +2,7 @@ from PIL import Image
 import numpy as np
 from ultralytics import YOLO
 import cv2
-from cpr_app.analyze_yolo import reconstruction_video as kari
+from flask_web_app.cpr_app.make_result import reconstruction_video as kari
 from cpr_app.analyze_yolo.rotate_video import RotateVideo
 import os
 import glob
@@ -40,6 +40,7 @@ class YOLOv8Estimator:
         self.json_path = Config.create_directory(output_path, "json")
         self.output_video_path = os.path.join(output_path,video_name)#output_path + '/' + video_name
         #色々なゴミを入れるパス
+        #主に、回転が必要なときに使う
         self.tmp_path = Config.create_directory(output_path, "tmp")
         self.tmp_csv_paths = ConfigCSV.initialize_files(self.tmp_path)
 
@@ -48,15 +49,15 @@ class YOLOv8Estimator:
         self.error_message = error_message
         print("setup YOLOv8Estimator")
 
-    #json: 結果出力用jsonファイルのパス　flame: 推定写真の合計枚数 いずれもwebアプリ用
-    def estimation_algorithm(self, json=None, flame=None):
+    #progress: 進捗出力用jsonファイルのパス　flame: 推定写真の合計枚数 いずれもwebアプリ用
+    def estimation_algorithm(self, progress=None, flame=None):
         """
         YOLOv8を使用して人体パーツの推定を行い、GUI描画と結果のCSVファイルへの書き込みを行うメソッド
         """
         print("start analyze yolo")
         #webアプリケーション用
-        if json != None:
-            status = cj(json)
+        if progress != None:
+            status = cj(progress)
 
 
         self.check_movie_aspect()
@@ -117,7 +118,7 @@ class YOLOv8Estimator:
             if count % 100 is 0:
                 print("finished", count)
                 #webアプリケーション用
-                if (json != None):
+                if (progress != None):
                     print(str(flame))
                     update_progress(status, count, flame)
 
@@ -137,8 +138,12 @@ class YOLOv8Estimator:
         print(f"video チェック{self.input_video_path}")
         orient = check_video_orientation(self.input_video_path)
         #もし動画が縦だったらそのまま通す
+
+        #今、回転できないバグが起きているから修正が必要
         #コードが動くかどうかの確認
         orient = "Portrait"
+
+
         if orient == "Portrait":
             rotated_video_path = RV.rotate_video(None)
             shutil.copy2(rotated_video_path, self.output_video_path)  #コピー
