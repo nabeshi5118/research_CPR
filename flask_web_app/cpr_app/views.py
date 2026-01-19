@@ -10,16 +10,20 @@ from .analyze_yolo import plot_csv
 from .analyze_yolo import reconstruction_video
 from .config_json import ConfigJson
 from delete_cache import DeleteCache
-from util import Config
 
-from .data.video_data import VideoData
+from util import Config
+from util import ConfigJson
+
+from .services import AnalysisService # 新しくインポート
+from .models import VideoData
 
 #allowed_extensionsにある有効な拡張子を持つ場合にTrueを返す
 def allowed_file(filename):
   return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-def initialize_file():
-  for file in glob.glob('cpr_app/outputs/**/*', recursive=True):
+def initialize_file(tmp):
+  path = tmp + "/**/*"
+  for file in glob.glob(path, recursive=True):
     try :
       os.remove(file)
     except IsADirectoryError :
@@ -30,19 +34,6 @@ def make_username():
   now = datetime.now()
     # フォーマットして文字列として返す
   return now.strftime('%Y_%m_%d_%H_%M')
-import os
-
-def create_folder(directory, folder_name):
-    """
-    指定したパスに指定した名前のフォルダを作成し、そのパスを返します。
-    """
-    folder_path = os.path.join(directory, folder_name)
-    try:
-        os.makedirs(folder_path, exist_ok=True)
-        print(f"フォルダを作成しました: {folder_path}")
-    except Exception as e:
-        print(f"フォルダ作成中にエラーが発生しました: {e}")
-    return folder_path
 
 # @app.before_request
 # def before_request():
@@ -53,25 +44,27 @@ def create_folder(directory, folder_name):
 @app.route('/')
 def index():
   my_dict = {}
-  initialize_file()
-  cj = ConfigJson(app.config['JSON_ANALYZING_PROGRESS'])
+  initialize_file(app.config['CACHE_PATH'])
+  cj = ConfigJson(app.config['CACHE_ANALYZE_PROGRESS'])
   cj.add({'message':'',"progress":0,"step":0})
-  # my_dict = {
-  #   'insert_something1': 'views.pyのinsert_something1部分です。',
-  #   'insert_something2': 'views.pyのinsert_something2部分です。',
-  #   'test_titles': ['title1', 'title2', 'title3']
-  # }
-  return render_template('cpr_app/upload.html', my_dict=my_dict)
+
+  return render_template(app.config['UPLOAD_HTML_PATH'], my_dict=my_dict)
+
+#upload.htmlからanalyze.html画面に飛ぶときに使う
+@app.route('/analyze/<filename>')
+def analyze(filename):
+  #解析画面に飛ぶ前にやりたいことがあればする場所
+  return render_template(app.config['ANALYZE_HTML_PATH'], filename=filename)
 
 # 評価画面の見方ページ
 @app.route('/guide')
 def guide():
-    return render_template('cpr_app/guide.html')
+    return render_template(app.config['GUIDE_HTML_PATH'])
 
 # 胸骨圧迫のコツページ
 @app.route('/tips')
 def tips():
-    return render_template('cpr_app/tips.html')
+    return render_template(app.config['TIPS_HTML_PATH'])
 
 @app.route('/clear_cache', methods=['POST'])
 def clear_cache():
@@ -79,16 +72,16 @@ def clear_cache():
     cache = DeleteCache()
     cache.delete_cache()
     print("キャッシュが削除されました。")
-    return render_template('cpr_app/upload.html', message="キャッシュを削除しました。")
+    return render_template(app.config['UPLOAD_HTML_PATH'], message="キャッシュを削除しました。")
 
 # 履歴ページ
 @app.route('/history')
 def history():
-    RIJ = ConfigJson(app.config['RESULTS_INFORMATION_JSON'])
+    RIJ = ConfigJson(app.config['RESULTS_JSON'])
     results_dict = RIJ.dict()
      # JSONのキー（タイムスタンプ）だけを抽出
     timestamps = list(results_dict.keys())
-    return render_template('cpr_app/history.html', timestamps=timestamps)
+    return render_template(app.config['HISTORY_HTML_PATH'], timestamps=timestamps)
 
 @app.route('/clear_history', methods=['POST'])
 def clear_history():
@@ -96,13 +89,13 @@ def clear_history():
     cache = DeleteCache()
     cache.delete_history()
     print("履歴が削除されました。")
-    return render_template('cpr_app/history.html', message="履歴を削除しました。")
+    return render_template(app.config['HISTORY_HTML_PATH'], message="履歴を削除しました。")
 
 # views.py
 @app.route('/select_date', methods=['POST'])
 def select_date():
     selected_date = request.form.get('timestamp')
-    RIJ = ConfigJson(app.config['RESULTS_INFORMATION_JSON'])
+    RIJ = ConfigJson(app.config['RESULTS_JSON'])
     results_dict = RIJ.dict()
     if selected_date and selected_date in results_dict:
         # ★★★★★ ここから修正 ★★★★★
@@ -135,8 +128,11 @@ def upload_file():
   sample_Filepath = app.config['DEBUG_VIDEO_PATH']
   sample_Filename = Config.get_filename(sample_Filepath)
   sample_Filename_only = Config.get_filename(sample_Filepath,True)#ファイル名のみ
-  upload_folder_path = app.config['UPLOAD_FOLDER']
+  upload_folder_path = app.config['CACHE_UPLOAD_PATH']
+
+
   #キー名にtest_10を探している
+  #ファイル名がdebugのファイルの場合
   if sample_Filename_only in request.form:
     print("テストデータ Test data")
     shutil.copy(sample_Filepath,upload_folder_path)
@@ -162,52 +158,51 @@ def upload_file():
     flash('許可されていないファイル形式です Unauthorized file format.', 'error')
     return redirect(request.url)
 
-@app.route('/analyze/<filename>')
-#analyzeに飛ぶ
-def analyze(filename):
-  template_name = app.config['ANALYZE_HTML_PATH'] # cpr_app/analyze.html
-  template_path = os.path.join(current_app.root_path, 'templates', template_name)
-
-    # os.path.exists() を使ってファイルの存在を確認します
-  if not os.path.exists(template_path):
-        # ファイルが存在しない場合、404エラーを返して処理を中断します
-    print("not found")
-  else:
-    return render_template(template_name, filename=filename)
 
 @app.route('/progress/<filename>', methods=['POST'])
 def progress(filename):
   #progressの状態を保存するjsonファイル "cpr_app/output_analyzing/progress.json"
-  JP = ConfigJson(app.config['JSON_ANALYZING_PROGRESS'])
-  JAR = ConfigJson(app.config['JSON_ANALYZING_RESULT'])
-  #output_analyzingのフォルダ
-  RJ = ConfigJson(app.config['RESULTS_INFORMATION_JSON'])
-  #JR = ConfigJson(app.config['JSON_RESULT'])
-  rj_dict = RJ.dict()
+  AP = ConfigJson(app.config['CACHE_ANALYZE_PROGRESS_JSON'])# JP
+  AR = ConfigJson(app.config['CACHE_ANALYZE_RESULT_JSON'])#JAR
+
   #記録を保存する用のフォルダを作成する
-  user_file = make_username()
-  upload_video_path = os.path.join(app.config['UPLOAD_FOLDER'],filename)
-  print(upload_video_path)
+  #将来的にusernameからソートできるようにしたい
+  user_file = make_username()#現状は日時をユーザーネームにしている
+
+
+  upload_video_path = os.path.join(app.config['CACHE_UPLOAD_PATH'],filename)
+  #video情報を保存するクラス
   video = VideoData(upload_video_path)
-  analyzing_folder_path = app.config['OUTPUT_ANALYZING_RESULT_PATH']
+  
+  analyzing_folder_path = app.config['CACHE_UPLOAD_PATH']#analyzing_folder_path = app.config['OUTPUT_ANALYZING_RESULT_PATH']
   #webに出力する用
-  output_analyzing_graph_path = app.config['OUTPUT_ANALYZING_RESULT_PATH'] + "/graph.png"
-  output_analyzing_movie_path = app.config['OUTPUT_ANALYZING_RESULT_PATH'] + "/movie.MP4"
+  output_movie = app.config['CACHE_OUTPUT_MOVIE'] #output_analyzing_graph_path = app.config['OUTPUT_ANALYZING_RESULT_PATH'] + "/graph.png"
+  output_graph = app.config['CACHE_OUTPUT_GRAPH'] #output_analyzing_movie_path = app.config['OUTPUT_ANALYZING_RESULT_PATH'] + "/movie.MP4"
+  
+  #結果を保存する際の前処理
   #resultsに保存するときのパス
-  result_save_path = create_folder(app.config['RESULTS_FOLDER_PATH'],user_file)
-  rj_dict[user_file] = {
-     "graph":os.path.join(result_save_path,"graph.png"),
-     "video":os.path.join(result_save_path,"movie.MP4"),
-     "json":os.path.join(result_save_path,"results.json")
+  RJ = ConfigJson(app.config['RESULTS_RECORD_JSON'])
+  rj_dict = RJ.dict()
+  result_save_path = Config.create_directory(app.config['RESULTS_FOLDER_PATH'],user_file)
+  video_record = app.config['VIDEO_RECORD_NAME']  
+  graph_record = app.config['GRAPH_RECORD_NAME'] 
+  result_record = app.config['RESULT_RECORD_NAME']
+  result_paths = {
+     os.path.splitext(os.path.basename(graph_record))[0]:os.path.join(result_save_path,graph_record),#graph_record:"path/to/graph_record"
+     os.path.splitext(os.path.basename(video_record))[0]:os.path.join(result_save_path,video_record),
+     os.path.splitext(os.path.basename(result_record))[0]:os.path.join(result_save_path,result_record)
   }
+  rj_dict[user_file] = result_paths
   RJ.add(rj_dict)
   #追加してほしいとろろにそれぞれパスあある
-  output_video_path = rj_dict[user_file]["video"]
-  output_graph_path = rj_dict[user_file]["graph"]
-  output_json_path = rj_dict[user_file]["json"]
+  save_video_path = rj_dict[user_file]["video"]#output_video_path
+  save_graph_path = rj_dict[user_file]["graph"]
+  save_json_path = rj_dict[user_file]["json"]
 
-  #実際には、姿勢推定しつつ、csvに書き込んでいる
-  JP.add({'message':'Pose Estimate',"progress":0,"step":1})
+
+  analysis_service = AnalysisService(video, app.config, result_paths)
+  analysis_service.run_full_analysis()
+
   exe = write_csv_yolo_cpr.YOLOv8Estimator(upload_video_path,analyzing_folder_path,error_message=app.config['ERROR_MESSAGE'])
   exe.estimation_algorithm(app.config['JSON_ANALYZING_PROGRESS'],video.flame)
   csv_paths,cache_path = exe.return_paths()

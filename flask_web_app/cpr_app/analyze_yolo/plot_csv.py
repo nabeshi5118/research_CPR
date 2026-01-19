@@ -14,7 +14,7 @@ from cpr_app.analyze_yolo.peak_detect_plot import PeakDetectPlot
 from cpr_app.analyze_yolo.peak_data import PeakData ,PeakDataAppropriate
 from .value_info import ValueInfo as vi
 from cpr_app.config_json import ConfigJson
-from cpr_app.data.video_data import VideoData
+from flask_web_app.cpr_app.models import VideoData
 
 def read_csv(filename):#利用
     # CSVファイルをNumPy配列に読み込む(y座標のみ)

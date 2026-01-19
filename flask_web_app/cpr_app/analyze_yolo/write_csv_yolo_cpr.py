@@ -16,27 +16,33 @@ import random
 import os
 import subprocess
 
+from util import Config
+from util import ConfigCSV
 
 class YOLOv8Estimator:
     #input_path 動画のパス(最後が動画名.mp4)
     #output_path 結果を保存してほしい場所のパス(最後がディレクトリ名)
     #動画名のファイルが作成してあるからそこに保存しよう
-    def __init__(self, input_path, output_path, error_message):
+    def __init__(self, input_path, output_path, model_path,error_message):
         #video videoの存在するパス
         self.input_video_path = input_path
         #csv_paths
         video_name = os.path.basename(input_path)
         self.video_name = os.path.splitext(video_name)[0]
+        self.model_path = model_path
 
-        csv_path = create_directory(output_path, "csv")
-        print(csv_path)
-        self.csv_paths = process_initialize_csv(csv_path)
-        self.cache_path = create_directory(output_path, "cache") + "/"
-        self.json_path = create_directory(output_path, "json") + "/"
-        self.output_video_path = output_path + '/' + video_name
+        self.key_point_num = 17
+
+
+        csv_path = Config.create_directory(output_path, "csv")
+        self.csv_paths = ConfigCSV.initialize_files(csv_path)
+        self.img_path = Config.create_directory(output_path, "img") 
+        self.json_path = Config.create_directory(output_path, "json")
+        self.output_video_path = os.path.join(output_path,video_name)#output_path + '/' + video_name
         #色々なゴミを入れるパス
-        self.tmp_path = create_directory(output_path, "tmp")
-        self.tmp_csv_paths = process_initialize_csv(self.tmp_path)
+        self.tmp_path = Config.create_directory(output_path, "tmp")
+        self.tmp_csv_paths = ConfigCSV.initialize_files(self.tmp_path)
+
         self.tmp_movie_name = "tmp.mp4"
         self.analyze_movie_name = "analyze.py"
         self.error_message = error_message
@@ -51,12 +57,17 @@ class YOLOv8Estimator:
         #webアプリケーション用
         if json != None:
             status = cj(json)
+
+
         self.check_movie_aspect()
         print("check_movie_aspect")
 
         #webアプリケーションはviews.pyでcsvデータとフォルダを作成してい
         # Load a model
-        model = YOLO('model/yolov8x-pose-p6.pt')
+        model = YOLO(self.model_path)
+
+        #コード内データ保存場所
+        data_buffer = {i: [] for i in range(self.key_point_num)}
 
         # Loop through the video images
         count = 0
@@ -91,16 +102,15 @@ class YOLOv8Estimator:
 
                 # keypointをcsvに書き込む、
                 #print(self.csv_paths)
-                for i in range(17):
-                    csv_path = self.csv_paths[i] if i < len(
-                        self.csv_paths) else np.nan
-                    keypoints = conn_person_keypoints[i] if i < len(
-                        conn_person_keypoints) else np.nan
-
-                    self.write_results_to_csv(csv_path, i, count, keypoints)
+                for i in range(self.key_point_num):
+                    try:
+                        keypoints = conn_person_keypoints[i]
+                        data_buffer[i].append(keypoints.tolist())
+                    except IndexError:
+                        data_buffer[i].append(['None', 'None', 'None', 'None'])
 
             #cv2.imshow('YOLOv8 Inference', annotated_image)
-            cv2.imwrite(self.cache_path + str(format(count, '06')) + '.jpg',
+            cv2.imwrite(self.img_path + str(format(count, '06')) + '.jpg',
                         annotated_image)
             count += 1
             #ここで100枚ごとにコメントを書いてる
@@ -117,19 +127,9 @@ class YOLOv8Estimator:
         cap.release()
         cv2.destroyAllWindows()
 
-    def write_results_to_csv(self, csv_path, i, count, keypoint):
-        with open(csv_path, 'a') as f:
-            writer = csv.writer(f)
-            try:
-                writer.writerow(keypoint)
-
-            except Exception as e:
-                print(e)
-                writer.writerow(['None', 'None', 'None', 'None'])
-                if self.error_message == 'yes':
-                    print(e)
-                    print(self.tmp_path + '|  frame ' + str(count) + "| " + '| keypoints ' \
-                    + str(i) + '\n')
+        for i, rows in data_buffer.items():
+            csv_path = self.csv_paths[i]
+            ConfigCSV.write_rows(csv_path, rows)
 
     def check_movie_aspect(self):
         RV = RotateVideo(self.input_video_path, self.tmp_path,
@@ -173,7 +173,9 @@ class YOLOv8Estimator:
 
     def check_movie_top_and_botom(self, tmp_video_path):
         #動画の上下をnoze(0)と右手首(10)で推定する
-        model = YOLO('model/yolov8x-pose-p6.pt')
+        model = YOLO(self.model_path)
+
+        tmp_data_buffer = {i: [] for i in range(17)}
 
         # Loop through the video images
         count = 0
@@ -197,18 +199,19 @@ class YOLOv8Estimator:
                 conn_person_keypoints = torch.cat(conn_person_keypoints, 1)
                 conn_person_keypoints = conn_person_keypoints.cpu().numpy()
                 #print(conn_person_keypoints)
-                for i in range(17):
-                    self.write_results_to_csv(self.tmp_csv_paths[i], i, count,
-                                              conn_person_keypoints[i])
-                    #print("writing in check top and botom")
-                    # print(self.tmp_csv_paths[i])
-                    # print(conn_person_keypoints[i])
-                    # ans = read_csv(self.tmp_csv_paths[i])
-                    # print(ans)
+
+                for i in range(self.key_point_num):
+                    try:
+                        tmp_data_buffer[i].append(conn_person_keypoints[i].tolist())
+                    except IndexError:
+                        tmp_data_buffer[i].append(['None', 'None', 'None', 'None'])
             count += 1
             if count == 2:
                 break
         # ここで頭と手首の位置をチェックする
+        for i, rows in tmp_data_buffer.items():
+            ConfigCSV.write_rows(self.tmp_csv_paths[i], rows)
+
         head_data = read_csv(self.tmp_csv_paths[0])
         #print(head_data)
         wrist_data = read_csv(self.tmp_csv_paths[10])
@@ -220,7 +223,7 @@ class YOLOv8Estimator:
             return False
 
     def return_paths(self):
-        return self.csv_paths, self.cache_path
+        return self.csv_paths, self.img_path
 
 
 def update_progress(status,count,total):
@@ -231,20 +234,6 @@ def update_progress(status,count,total):
     #こっちはjson書き込み用
     i = {'progress':progress}
     status.add(i)
-
-
-def create_directory(base_path, dir_name):
-    """
-    指定したパスの下にディレクトリを作成する関数
-    """
-    target_path = os.path.join(base_path, dir_name)
-    try:
-        os.makedirs(target_path, exist_ok=True)
-    except Exception as e:
-        print(f"ディレクトリの作成中にエラーが発生しました: {e}")
-
-
-    return target_path
 
 def check_video_orientation(video_path):
     """
@@ -301,23 +290,6 @@ def overwrite_video(source_path, target_path):
     except Exception as e:
         return f"エラーが発生しました: {e}"
 
-
-def process_initialize_csv(csv_path):
-    #~/csv/までのパスをもらってるからそこに0~17の.csvを作成する
-    #ファイル名はキー番号だけ
-    #YOLO以外は、videoに数字を入れればその数だけtmp_paths以下に指定した数だけcsvファイルを作成する
-    csv_paths = []
-    #yoloに対応したディレクトリを作成している
-    landmark = 17#キーポイントの個数
-
-    for i in range(landmark):
-        #キーポイント毎にcsvファイルを作成
-        csv_file_path = os.path.join(csv_path, f'{i}.csv')
-        #パスの合成
-        csv_paths.append(csv_file_path)
-        setup_csv(csv_file_path)
-
-    return csv_paths
 
 def clean_directory(directory_path, keep_one_jpg=False):
     """
