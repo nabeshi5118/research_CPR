@@ -2,7 +2,7 @@ from PIL import Image
 import numpy as np
 from ultralytics import YOLO
 import cv2
-from flask_web_app.cpr_app.make_result import reconstruction_video as kari
+from cpr_app.make_result import reconstruction_video as kari
 from cpr_app.analyze_yolo.rotate_video import RotateVideo
 import os
 import glob
@@ -10,8 +10,6 @@ import shutil
 import csv
 import torch
 import json
-from cpr_app.config_json import ConfigJson as cj
-from cpr_app.config_csv import ConfingCSV as CC
 import random
 import os
 import subprocess
