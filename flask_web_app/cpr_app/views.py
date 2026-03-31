@@ -6,9 +6,8 @@ import asyncio
 import shutil
 from datetime import datetime
 from .analyze_yolo import write_csv_yolo_cpr
-from .analyze_yolo import plot_csv
-from .analyze_yolo import reconstruction_video
-from .config_json import ConfigJson
+from .evaluate_csv import evaluate_csv
+from .make_result import reconstruction_video
 from delete_cache import DeleteCache
 
 from util import Config
@@ -222,7 +221,7 @@ def progress(filename):
   keypoint = 10
   window_size = 10
   print("video time"+str(video.time))
-  plot_csv.plot_csv_data(csv_filename=csv_paths[keypoint] , fps =video.fps ,time=video.time, window_size=window_size,output_graph_path = output_analyzing_graph_path,analyzing_result_json=app.config['JSON_ANALYZING_RESULT'])
+  evaluate_csv.plot_csv_data(csv_filename=csv_paths[keypoint] , fps =video.fps ,time=video.time, window_size=window_size,output_graph_path = output_analyzing_graph_path,analyzing_result_json=app.config['JSON_ANALYZING_RESULT'])
   JP.add({"progress":100})
   print("finish step3")
 

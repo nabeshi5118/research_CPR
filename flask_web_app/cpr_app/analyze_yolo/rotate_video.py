@@ -4,9 +4,6 @@ import shutil
 import csv
 import torch
 import json
-from cpr_app.config_json import ConfigJson as cj
-from cpr_app.config_csv import ConfingCSV as CC
-import random
 import os
 import subprocess
 import cv2

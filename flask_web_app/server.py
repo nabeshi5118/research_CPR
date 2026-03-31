@@ -30,8 +30,10 @@ app.config['CACHE_PATH'] = "cpr_app/cache" #キャッシュ全体のパス
 app.config['CACHE_UPLOAD_PATH'] = 'cpr_app/cache/uploads'#uploadした動画の原型をおいておくパス
 #キャッシュの中でも、解析時に使われるパス
 app.config['CACHE_IMG_PATH'] = "cpr_app/cache/img"#画像のパス
-app.config['CACHE_CSV_PATH'] = "cpr_app/cache/csv"#csvデータのパス
+app.config['CACHE_CSV_PATH'] = "cpr_app/cache/csv"#キーポイントcsvデータのパス
 app.config['CACHE_TMP_PATH'] = "cpr_app/cache/tmp"#一時置き場のパス 便利に使って良いフォルダ
+app.config['CACHE_CSV_EVALUATE'] = "cpr_app/cache/csv/10.csv"#今回の推定は手首
+
 #キャッシュの中でも、web出力時に使われるパス
 app.config['CACHE_OUTPUT_PATH'] = "cpr_app/cache/output"#Web出力時に一旦置く場所
 app.config['CACHE_OUTPUT_MOVIE'] = "cpr_app/cache/output/" + video
